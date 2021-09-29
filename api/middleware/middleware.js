@@ -1,3 +1,8 @@
+//imports
+const Users = require('../users/users-model.js');
+
+
+//Middleware functions
 function logger(req, res, next) {
   const timestamp = new Date().toLocaleString()
   const method = req.method
@@ -8,9 +13,22 @@ function logger(req, res, next) {
   next();
 }
 
-function validateUserId(req, res, next) {
-  
-  next();
+async function validateUserId(req, res, next) {
+  try{
+    const {id} = req.params
+    const user = await Users.getById(id)
+
+    if(!user){
+      res.status(404).json({message: "user not found"})
+    }
+    else {
+      req.user = user;
+      next();
+    }
+  }
+  catch {
+    res.status(500).json({message: "an error occurred while validating user id"})
+  }
 }
 
 function validateUser(req, res, next) {

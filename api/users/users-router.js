@@ -21,15 +21,29 @@ router.get('/:id', logger, validateUserId, (req, res) => {
   res.json(req.user)
 });
 
-router.post('/', logger, (req, res) => {
-  // RETURN THE NEWLY CREATED USER OBJECT
-  // this needs a middleware to check that the request body is valid
+router.post('/', logger, validateUser, (req, res) => {
+  const {name} = req.body
+
+  Users.insert({name})
+       .then(newUser => {
+         res.status(201).json(newUser)
+       })
+       .catch(err => {
+         res.status(500).json({message: "an error occurred attempting to create a new user"})
+       })
 });
 
-router.put('/:id', logger, validateUserId, (req, res) => {
-  // RETURN THE FRESHLY UPDATED USER OBJECT
-  // this needs a middleware to verify user id
-  // and another middleware to check that the request body is valid
+router.put('/:id', logger, validateUserId, validateUser, (req, res) => {
+  const {id} = req.params
+  const {name} = req.body
+
+  Users.update(id, {name})
+       .then(updatedUser => {
+         res.status(200).json(updatedUser)
+       })
+       .catch(err => {
+         res.status(500).json({message: "an error occurred attempting to update the specified user"})
+       })
 });
 
 router.delete('/:id', logger, validateUserId, (req, res) => {
@@ -42,7 +56,7 @@ router.get('/:id/posts', logger, validateUserId, (req, res) => {
   // this needs a middleware to verify user id
 });
 
-router.post('/:id/posts', logger, validateUserId, (req, res) => {
+router.post('/:id/posts', logger, validateUserId, validateUser, validatePost, (req, res) => {
   // RETURN THE NEWLY CREATED USER POST
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid

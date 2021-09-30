@@ -46,20 +46,44 @@ router.put('/:id', logger, validateUserId, validateUser, (req, res) => {
        })
 });
 
-router.delete('/:id', logger, validateUserId, (req, res) => {
-  // RETURN THE FRESHLY DELETED USER OBJECT
-  // this needs a middleware to verify user id
+router.delete('/:id', logger, validateUserId, async (req, res) => {
+  try{
+    const {id} = req.params
+
+    await Users.remove(id)
+
+    res.json(req.user)
+  }
+  catch (err){
+    res.status(500).json({message: "an error occurred attempting to delete the specified user"})
+  }
+
 });
 
-router.get('/:id/posts', logger, validateUserId, (req, res) => {
-  // RETURN THE ARRAY OF USER POSTS
-  // this needs a middleware to verify user id
+router.get('/:id/posts', logger, validateUserId, async (req, res) => {
+  try {
+     const {id} = req.params
+
+     const posts = await Users.getUserPosts(id)
+
+     res.status(200).json(posts)
+  }
+  catch (err) {
+    res.status(500).json({ message: "an error occurred while trying to retrieve user's posts" })
+  }
 });
 
-router.post('/:id/posts', logger, validateUserId, validateUser, validatePost, (req, res) => {
-  // RETURN THE NEWLY CREATED USER POST
-  // this needs a middleware to verify user id
-  // and another middleware to check that the request body is valid
+router.post('/:id/posts', logger, validateUserId,  validatePost, (req, res) => {
+  Posts.insert({
+    user_id: req.params.id,
+    text: req.text,
+  })
+       .then(newPost => {
+         res.status(201).json(newPost)
+       })
+       .catch(err => {
+         res.status(500).json({message: ""})
+       })
 });
 
 //export
